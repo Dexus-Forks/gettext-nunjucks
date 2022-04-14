@@ -177,6 +177,25 @@ Parser.prototype.nunjucks = function (template) {
 
   // Add markdown support.
   var env = nunjucks.configure();
+  env.addExtension('sitemap', new function JsExtension() {
+    this.tags = ['sitemap'];
+
+    this.parse = function (parser, nodes) {
+      const tok = parser.nextToken();  // Get the tag token
+      var args = parser.parseSignature(true, true);
+      if (args.children.length === 0) {
+        args.addChild(new nodes.Literal(0, 0, ""));
+      }
+
+      parser.advanceAfterBlockEnd(tok.value);
+      // Actually do work on block body and arguments
+      return new nodes.CallExtension(this, 'run', args);
+    };
+
+    this.run = function (...args) {
+      return new nunjucks.runtime.SafeString('');
+    };
+  }())
   marked.setOptions({smartypants: true, gfm: true});
   nunjucksMarkdown.register(env, marked);
 
